@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<!-- 引入样式 -->
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<style>
+body {
+  background-color: rgb(246, 247, 251);
+}
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.container {
+  width: 1280px;
+  margin: 0px auto;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(225, 223, 221);
+  border-radius: 2px;
+  padding: 0 20px 20px 20px;
+}
+.header-wrap {
+  min-height: 56px;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  padding: 12px 20px 0px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgb(27, 26, 25);
+}
+.bundle-info {
+  display: flex;
+  border-radius: 4px;
+  border: 1px solid rgb(225, 223, 221);
+  padding: 12px 16px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.bundle-info-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.bundle-overview {
+  flex-wrap: wrap;
+  width: auto;
+  overflow: visible;
+  height: auto;
+  display: flex;
+  justify-content: space-between;
+}
+.bundle-left {
+  width: 60%;
+  height: 300px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-content: space-between;
+  flex-wrap: wrap;
+}
+.bundle-left-item {
+  width: calc(30% - 20px);
+  height: calc(45% - 20px);
+  border-radius: 4px;
+  border: 1px solid rgb(225, 223, 221);
+  padding: 12px 16px;
+  text-align: left;
+}
+.kb {
+  font-size: 14px;
+  font-weight: 400;
+}
+.bundle-left-item-title {
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.bundle-left-item-value {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 100px;
+}
+.bundle-right {
+  width: calc(40% - 20px);
+  border-radius: 4px;
+  height: 300px;
+  border: 1px solid rgb(225, 223, 221);
+}
+.pie {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+}
+.tablist {
+  margin-top: 20px;
+}
+.visualization {
+    width: 1248px;
+    height: 500px;
+    background: #eebe77;
+  }
+</style>
+<script src="https://unpkg.com/vue@2"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+<div class="container">
+  <div class="header-wrap">vite-plugin-visualizer</div>
+  <div class="bundle-info">
+    <div>
+      <span class="bundle-info-title">project URL：</span
+      >{{ bundleObj.root }}
+    </div>
+    <div>
+      <span class="bundle-info-title">built in：</span> {{ bundleObj.time }}
+    </div>
+    <div>
+      <span class="bundle-info-title">built Date:</span>
+      {{ bundleObj.startTime }}
+    </div>
+  </div>
+  <div class="bundle-overview">
+    <div class="bundle-left">
+      <div
+        class="bundle-left-item"
+        v-for="item in bundleList"
+        :key="item.key"
+      >
+        <div class="bundle-left-item-title" v-if="item.content">
+          <el-popover
+            :ref="item.key"
+            :title="item.content.title"
+            width="200"
+            trigger="hover"
+            :content="item.content.content"
+          >
+          </el-popover>
+          <span v-popover="item.key">{{ item.title }}</span>
+        </div>
+        <div v-else class="bundle-left-item-title">{{ item.title }}</div>
+        <div class="bundle-left-item-value">
+          {{ bundleObj[item.key] }}
+          <span v-if="!item.content" class="kb">kb</span>
+        </div>
+      </div>
+    </div>
+    <div class="bundle-right">
+      <div class="pie" id="pie"></div>
+    </div>
+  </div>
+  <el-tabs type="border-card" class="tablist">
+    <el-tab-pane label="Visualization">
+      <div id="visualization" class="visualization"></div>
+    </el-tab-pane>
+    <el-tab-pane label="Assets Statistics">
+      <el-table :data="tableData" height="400" stripe style="width: 100%">
+        <el-table-column prop="fileName" sortable label="file" width="500px">
+        </el-table-column>
+        <el-table-column prop="fileType" sortable label="type"> </el-table-column>
+        <el-table-column prop="size" sortable label="size(kb)"> </el-table-column>
+        <el-table-column prop="dependencyCount" sortable label="dependencyCount">
+        </el-table-column>
+      </el-table>
+    </el-tab-pane>
+  </el-tabs>
+</div>
+</div>
+</body>
+
+
+<script>
+var app = new Vue({
+  el: '#app',
+  data: {
+    bundleObj:{"root":"/Users/mac/Desktop/code/vue3-project","time":"8.264s","startTime":"2023/9/30 01:31:04","totalSize":"1225.13","assetCount":3,"chunkCount":3,"packageCount":156,"jsSize":"162.82","cssSize":"2.97","imageSize":"1059.34","htmlSize":"0.00","fontSize":"0.00"},
+    tableData:[{"fileName":"assets/img-4e463e95.png","fileType":"png","size":"1059.34","dependencyCount":0},{"fileName":"assets/index-25a63267.css","fileType":"css","size":"2.97","dependencyCount":0},{"fileName":"assets/index-c10972dc.js","fileType":"js","size":"162.82","dependencyCount":156}],
+    bundleList:[
+        {
+          key: 'totalSize',
+          title: 'Bundle Size',
+          content: '',
+        },
+        {
+          key: 'jsSize',
+          title: 'Initial JS Size',
+          content: '',
+        },
+        {
+          key: 'cssSize',
+          title: 'Initial CSS Size',
+          content: '',
+        },
+        {
+          key: 'assetCount',
+          title: 'Assets Count',
+          content: {
+            title: 'Webpack ouput assets',
+            content:
+              'Files emitted by webpack.<br/> Including any JavaScript CSS font Image files which processed by webpack.',
+          },
+        },
+        {
+          key: 'chunkCount',
+          title: 'Chunks Count',
+          content: {
+            title: 'Chunks',
+            content:
+              '(1)initial is the main chunk for the entry point. This chunk contains all the modules and its dependencies that you specify for an entry point.initial is the main chunk for the entry point. This chunk contains all the modules and its dependencies that you specify for an entry point.non-initial is a chunk that may be lazy-loaded. It may appear when dynamic import or SplitChunksPlugin is being used.',
+          },
+        },
+        {
+          key: 'packageCount',
+          title: 'Packages Count',
+          content: {
+            title: 'node_modules',
+            content: 'Third part packages count in node_modules.',
+          },
+        },
+      ]
+  },
+  methods: {
+    setPieChart(){
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('pie'))
+        // 绘制图表
+        myChart.setOption({
+          title: {
+            text: 'Bundle Overview',
+          },
+          tooltip: {
+            trigger: 'item',
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left',
+            top: '30%',
+          },
+          series: [
+            {
+              name: 'Bundle Overview',
+              type: 'pie',
+              radius: '50%',
+              data: [
+                { value: 162.82, name: 'JS' },
+                { value: 2.97, name: 'CSS' },
+                { value: 1059.34, name: 'Image' },
+                { value: 0.00, name: 'Font' },
+                { value: 0.00, name: 'Html' },
+              ],
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)',
+                },
+              },
+            },
+          ],
+        })
+    },
+    getLevelOption() {
+        return [
+          {
+            itemStyle: {
+              borderColor: '#777',
+              borderWidth: 0,
+              gapWidth: 1
+            },
+            upperLabel: {
+              show: false
+            }
+          },
+          {
+            itemStyle: {
+              borderColor: '#555',
+              borderWidth: 5,
+              gapWidth: 1
+            },
+            emphasis: {
+              itemStyle: {
+                borderColor: '#ddd'
+              }
+            }
+          },
+          {
+            colorSaturation: [0.35, 0.5],
+            itemStyle: {
+              borderWidth: 5,
+              gapWidth: 1,
+              borderColorSaturation: 0.6
+            }
+          }
+        ];
+      },
+    setTreeChart(){
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('visualization'))
+        // 绘制图表
+        myChart.setOption({
+          title: {
+              text: 'visualization',
+              left: 'center'
+          },
+          tooltip: {
+              formatter: function(info) {
+                  var value = info.value;
+                  var treePathInfo = info.treePathInfo;
+                  var treePath = [];
+                  for (var i = 1; i < treePathInfo.length; i++) {
+                      treePath.push(treePathInfo[i].name);
+                  }
+                  return [
+                      '<div class="tooltip-title">' +
+                      echarts.format.encodeHTML(treePath.join('/')) +
+                      '</div>',
+                      'size: ' + echarts.format.addCommas(value) + ' KB'
+                  ].join('');
+              }
+          },
+          series: [{
+              name: 'root',
+              type: 'treemap',
+              visibleMin: 300,
+              label: {
+                  show: true,
+                  formatter: '{b}'
+              },
+              upperLabel: {
+                  show: true,
+                  height: 30
+              },
+              itemStyle: {
+                  borderColor: '#fff'
+              },
+              levels: this.getLevelOption(),
+              data: [{"name":"assets/index-c10972dc.js","children":[{"name":"\u0000vite/modulepreload-polyfill","uid":"nuhuen-1","value":1548},{"name":"node_modules/.pnpm","children":[{"name":"@vue+shared@3.3.4/node_modules/@vue/shared/dist/shared.esm-bundler.js","uid":"nuhuen-3","value":4948},{"name":"@vue+reactivity@3.3.4/node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js","uid":"nuhuen-5","value":24875},{"name":"@vue+runtime-core@3.3.4/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js","uid":"nuhuen-7","value":118493},{"name":"@vue+runtime-dom@3.3.4/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js","uid":"nuhuen-9","value":18734},{"name":"@babel+runtime@7.23.1/node_modules/@babel/runtime/helpers/esm","children":[{"uid":"nuhuen-13","value":335,"name":"typeof.js"},{"uid":"nuhuen-15","value":403,"name":"toPrimitive.js"},{"uid":"nuhuen-17","value":129,"name":"toPropertyKey.js"},{"uid":"nuhuen-19","value":284,"name":"defineProperty.js"},{"uid":"nuhuen-21","value":758,"name":"objectSpread2.js"},{"uid":"nuhuen-23","value":401,"name":"extends.js"}]},{"name":"ant-design-vue@4.0.3_vue@3.3.4/node_modules/ant-design-vue","children":[{"name":"es","children":[{"name":"_util","children":[{"uid":"nuhuen-25","value":148,"name":"util.js"},{"uid":"nuhuen-27","value":630,"name":"classNames.js"},{"uid":"nuhuen-29","value":120,"name":"isValid.js"},{"name":"props-util","children":[{"uid":"nuhuen-31","value":579,"name":"initDefaultProps.js"},{"uid":"nuhuen-33","value":1863,"name":"index.js"}]},{"uid":"nuhuen-35","value":959,"name":"raf.js"},{"uid":"nuhuen-37","value":1168,"name":"type.js"},{"name":"cssinjs","children":[{"uid":"nuhuen-57","value":624,"name":"Cache.js"},{"uid":"nuhuen-59","value":3992,"name":"StyleContext.js"},{"name":"hooks","children":[{"uid":"nuhuen-61","value":1231,"name":"useGlobalCache.js"},{"uid":"nuhuen-81","value":3482,"name":"useCacheToken.js"},{"name":"useStyleRegister","children":[{"uid":"nuhuen-95","value":1726,"name":"cacheMapUtil.js"},{"uid":"nuhuen-97","value":10700,"name":"index.js"}]}]},{"name":"theme","children":[{"uid":"nuhuen-69","value":3328,"name":"ThemeCache.js"},{"uid":"nuhuen-75","value":542,"name":"Theme.js"},{"uid":"nuhuen-77","value":468,"name":"createTheme.js"}]},{"uid":"nuhuen-79","value":1880,"name":"util.js"}]},{"uid":"nuhuen-63","value":122,"name":"canUseDom.js"},{"uid":"nuhuen-73","value":127,"name":"warning.js"},{"name":"vue-types/index.js","uid":"nuhuen-163","value":436},{"uid":"nuhuen-241","value":58,"name":"transition.js"},{"name":"hooks/useState.js","uid":"nuhuen-243","value":292},{"uid":"nuhuen-263","value":446,"name":"createContext.js"},{"name":"wave","children":[{"uid":"nuhuen-275","value":766,"name":"style.js"},{"uid":"nuhuen-277","value":943,"name":"util.js"},{"uid":"nuhuen-279","value":4168,"name":"WaveEffect.js"},{"uid":"nuhuen-281","value":171,"name":"useWave.js"},{"uid":"nuhuen-283","value":1987,"name":"index.js"}]}]},{"name":"config-provider","children":[{"uid":"nuhuen-39","value":539,"name":"context.js"},{"uid":"nuhuen-41","value":146,"name":"DisabledContext.js"},{"uid":"nuhuen-155","value":702,"name":"renderEmpty.js"},{"uid":"nuhuen-157","value":130,"name":"SizeContext.js"},{"name":"hooks/useConfigInject.js","uid":"nuhuen-159","value":3181}]},{"name":"vc-pagination/locale/en_US.js","uid":"nuhuen-43","value":313},{"name":"vc-picker/locale/en_US.js","uid":"nuhuen-45","value":817},{"name":"time-picker/locale/en_US.js","uid":"nuhuen-47","value":127},{"name":"date-picker/locale/en_US.js","uid":"nuhuen-49","value":736},{"name":"locale","children":[{"uid":"nuhuen-51","value":3632,"name":"en_US.js"},{"uid":"nuhuen-53","value":1442,"name":"LocaleReceiver.js"}]},{"name":"vc-util","children":[{"name":"Dom","children":[{"uid":"nuhuen-65","value":168,"name":"contains.js"},{"uid":"nuhuen-67","value":3865,"name":"dynamicCSS.js"},{"uid":"nuhuen-167","value":418,"name":"isVisible.js"}]},{"uid":"nuhuen-71","value":321,"name":"warning.js"},{"uid":"nuhuen-165","value":123,"name":"devWarning.js"}]},{"name":"version/version.js","uid":"nuhuen-99","value":24},{"name":"theme","children":[{"name":"themes","children":[{"name":"shared","children":[{"uid":"nuhuen-113","value":267,"name":"genControlHeight.js"},{"uid":"nuhuen-115","value":444,"name":"genSizeMapToken.js"},{"uid":"nuhuen-119","value":2897,"name":"genColorMapToken.js"},{"uid":"nuhuen-121","value":1209,"name":"genRadius.js"},{"uid":"nuhuen-123","value":447,"name":"genCommonMapToken.js"},{"uid":"nuhuen-129","value":516,"name":"genFontSizes.js"},{"uid":"nuhuen-131","value":868,"name":"genFontMapToken.js"}]},{"uid":"nuhuen-117","value":1624,"name":"seed.js"},{"name":"default","children":[{"uid":"nuhuen-125","value":252,"name":"colorAlgorithm.js"},{"uid":"nuhuen-127","value":1366,"name":"colors.js"},{"uid":"nuhuen-133","value":701,"name":"index.js"}]}]},{"name":"util","children":[{"uid":"nuhuen-135","value":905,"name":"getAlphaColor.js"},{"uid":"nuhuen-137","value":6802,"name":"alias.js"},{"uid":"nuhuen-141","value":2057,"name":"genComponentStyleHook.js"},{"uid":"nuhuen-143","value":1504,"name":"statistic.js"}]},{"uid":"nuhuen-145","value":1142,"name":"internal.js"}]},{"name":"style","children":[{"uid":"nuhuen-139","value":1584,"name":"index.js"},{"uid":"nuhuen-273","value":1945,"name":"compact-item.js"},{"uid":"nuhuen-291","value":1184,"name":"compact-item-vertical.js"}]},{"name":"empty","children":[{"uid":"nuhuen-147","value":2901,"name":"empty.js"},{"uid":"nuhuen-149","value":1703,"name":"simple.js"},{"name":"style/index.js","uid":"nuhuen-151","value":1746},{"uid":"nuhuen-153","value":2933,"name":"index.js"}]},{"name":"space","children":[{"name":"style","children":[{"uid":"nuhuen-265","value":418,"name":"compact.js"},{"uid":"nuhuen-267","value":877,"name":"index.js"}]},{"uid":"nuhuen-271","value":3968,"name":"Compact.js"}]},{"name":"button","children":[{"uid":"nuhuen-285","value":661,"name":"buttonTypes.js"},{"uid":"nuhuen-287","value":1635,"name":"LoadingIcon.js"},{"name":"style","children":[{"uid":"nuhuen-289","value":1644,"name":"group.js"},{"uid":"nuhuen-293","value":12163,"name":"index.js"}]},{"uid":"nuhuen-295","value":1427,"name":"button-group.js"},{"uid":"nuhuen-297","value":6949,"name":"button.js"},{"uid":"nuhuen-299","value":191,"name":"index.js"}]}]},{"name":"dist/reset.css","uid":"nuhuen-301","value":17}]},{"name":"@emotion+hash@0.9.1/node_modules/@emotion/hash/dist/emotion-hash.esm.js","uid":"nuhuen-55","value":1622},{"name":"@emotion+unitless@0.8.1/node_modules/@emotion/unitless/dist/emotion-unitless.esm.js","uid":"nuhuen-83","value":886},{"name":"stylis@4.3.0/node_modules/stylis/src","children":[{"uid":"nuhuen-85","value":145,"name":"Enum.js"},{"uid":"nuhuen-87","value":1279,"name":"Utility.js"},{"uid":"nuhuen-89","value":3880,"name":"Tokenizer.js"},{"uid":"nuhuen-91","value":5639,"name":"Parser.js"},{"uid":"nuhuen-93","value":981,"name":"Serializer.js"}]},{"name":"@ctrl+tinycolor@3.6.1/node_modules/@ctrl/tinycolor/dist/module","children":[{"uid":"nuhuen-101","value":2130,"name":"util.js"},{"uid":"nuhuen-103","value":5818,"name":"conversion.js"},{"uid":"nuhuen-105","value":3954,"name":"css-color-names.js"},{"uid":"nuhuen-107","value":6544,"name":"format-input.js"},{"uid":"nuhuen-109","value":17925,"name":"index.js"}]},{"name":"@ant-design+colors@6.0.0/node_modules/@ant-design/colors/dist/index.esm.js","uid":"nuhuen-111","value":4873},{"name":"vue-types@3.0.2_vue@3.3.4/node_modules/vue-types/dist/vue-types.m.js","uid":"nuhuen-161","value":9111},{"name":"lodash-es@4.17.21/node_modules/lodash-es","children":[{"uid":"nuhuen-169","value":176,"name":"_freeGlobal.js"},{"uid":"nuhuen-171","value":255,"name":"_root.js"},{"uid":"nuhuen-173","value":91,"name":"_Symbol.js"},{"uid":"nuhuen-175","value":1103,"name":"_getRawTag.js"},{"uid":"nuhuen-177","value":534,"name":"_objectToString.js"},{"uid":"nuhuen-179","value":637,"name":"_baseGetTag.js"},{"uid":"nuhuen-181","value":704,"name":"isObject.js"},{"uid":"nuhuen-183","value":884,"name":"isFunction.js"},{"uid":"nuhuen-185","value":130,"name":"_coreJsData.js"},{"uid":"nuhuen-187","value":497,"name":"_isMasked.js"},{"uid":"nuhuen-189","value":535,"name":"_toSource.js"},{"uid":"nuhuen-191","value":1233,"name":"_baseIsNative.js"},{"uid":"nuhuen-193","value":296,"name":"_getValue.js"},{"uid":"nuhuen-195","value":366,"name":"_getNative.js"},{"uid":"nuhuen-197","value":124,"name":"_Map.js"},{"uid":"nuhuen-199","value":488,"name":"isArray.js"},{"uid":"nuhuen-201","value":581,"name":"isObjectLike.js"},{"uid":"nuhuen-203","value":366,"name":"_baseIsArguments.js"},{"uid":"nuhuen-205","value":940,"name":"isArguments.js"},{"uid":"nuhuen-207","value":250,"name":"stubFalse.js"},{"uid":"nuhuen-209","value":1061,"name":"isBuffer.js"},{"uid":"nuhuen-211","value":773,"name":"isLength.js"},{"uid":"nuhuen-213","value":2077,"name":"_baseIsTypedArray.js"},{"uid":"nuhuen-215","value":302,"name":"_baseUnary.js"},{"uid":"nuhuen-217","value":954,"name":"_nodeUtil.js"},{"uid":"nuhuen-219","value":568,"name":"isTypedArray.js"},{"uid":"nuhuen-221","value":452,"name":"_isPrototype.js"},{"uid":"nuhuen-223","value":354,"name":"_overArg.js"},{"uid":"nuhuen-225","value":169,"name":"_nativeKeys.js"},{"uid":"nuhuen-227","value":668,"name":"_baseKeys.js"},{"uid":"nuhuen-229","value":717,"name":"isArrayLike.js"},{"uid":"nuhuen-231","value":140,"name":"_DataView.js"},{"uid":"nuhuen-233","value":140,"name":"_Promise.js"},{"uid":"nuhuen-235","value":124,"name":"_Set.js"},{"uid":"nuhuen-237","value":140,"name":"_WeakMap.js"},{"uid":"nuhuen-239","value":1625,"name":"_getTag.js"},{"uid":"nuhuen-269","value":1654,"name":"isEmpty.js"}]},{"name":"@ant-design+icons-vue@7.0.0_vue@3.3.4/node_modules/@ant-design/icons-vue/es","children":[{"name":"components","children":[{"uid":"nuhuen-245","value":213,"name":"Context.js"},{"uid":"nuhuen-251","value":3445,"name":"IconBase.js"},{"uid":"nuhuen-253","value":2155,"name":"twoTonePrimaryColor.js"},{"uid":"nuhuen-255","value":170,"name":"InsertStyle.js"},{"uid":"nuhuen-257","value":5387,"name":"AntdIcon.js"}]},{"uid":"nuhuen-247","value":3700,"name":"dynamicCSS.js"},{"uid":"nuhuen-249","value":3727,"name":"utils.js"},{"name":"icons/LoadingOutlined.js","uid":"nuhuen-261","value":1050}]},{"name":"@ant-design+icons-svg@4.3.1/node_modules/@ant-design/icons-svg/es/asn/LoadingOutlined.js","uid":"nuhuen-259","value":618}]},{"name":"src","children":[{"uid":"nuhuen-11","value":17,"name":"style.css"},{"name":"components","children":[{"uid":"nuhuen-303","value":46,"name":"img.png"},{"uid":"nuhuen-305","value":655,"name":"Button.vue?vue&type=script&setup=true&lang.ts"}]},{"uid":"nuhuen-307","value":185,"name":"App.vue?vue&type=script&setup=true&lang.ts"},{"uid":"nuhuen-309","value":69,"name":"main.ts"}]},{"uid":"nuhuen-311","value":0,"name":"index.html"}]}],
+          }]
+      })
+    }
+  },
+  mounted(){
+    this.setPieChart()
+    this.setTreeChart()
+  }
+})
+</script>
+</html>
+  
